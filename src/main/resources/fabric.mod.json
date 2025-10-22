@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "origami",
+  "version": "${version}",
+  "name": "Origami Client",
+  "description": "A custom client for Minecraft with enhanced features.",
+  "authors": ["You"],
+  "contact": {},
+  "license": "CC0-1.0",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "me.origami.OrigamiClient"
+    ]
+  },
+  "mixins": [
+    "mixin.origami.json"
+  ],
+  "depends": {
+    "fabricloader": "0.16.14",
+    "minecraft": "1.21.5",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
