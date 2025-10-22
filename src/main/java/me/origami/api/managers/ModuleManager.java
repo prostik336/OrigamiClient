@@ -1,39 +1,83 @@
 package me.origami.api.managers;
 
 import me.origami.api.module.Module;
+import me.origami.mods.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ModuleManager {
-    private static final List<Module> modules = new ArrayList<>();
+    public List<Module> modules = new ArrayList<>();
 
-    public static void init() {
-        // Здесь можно вручную добавить модули при старте, если нужно
-        // Например: modules.add(new BetterChat());
-        // Но лучше полагаться на регистрацию из конструкторов модулей
+    public ModuleManager() {
+        load();
     }
 
-    public static List<Module> getModules() {
-        return modules;
+    public void load() {
+        // Только существующие модули
+        modules.add(new BetterChat());
+        modules.add(new CrystalAura());
     }
 
-    public static void addModule(Module module) {
-        if (!modules.contains(module)) {
-            modules.add(module);
-        }
-    }
-
-    public static void removeModule(Module module) {
-        modules.remove(module);
-    }
-
-    public static Module getModuleByName(String name) {
-        for (Module module : modules) {
+    public Module getModuleByName(String name) {
+        for (Module module : this.modules) {
             if (module.getName().equalsIgnoreCase(name)) {
                 return module;
             }
         }
         return null;
+    }
+
+    public void enableModule(String name) {
+        Module module = this.getModuleByName(name);
+        if (module != null) {
+            module.setEnabled(true);
+            module.onEnable();
+        }
+    }
+
+    public void disableModule(String name) {
+        Module module = this.getModuleByName(name);
+        if (module != null) {
+            module.setEnabled(false);
+            module.onDisable();
+        }
+    }
+
+    public ArrayList<Module> getEnabledModules() {
+        ArrayList<Module> enabledModules = new ArrayList<>();
+        for (Module module : this.modules) {
+            if (module.isEnabled()) {
+                enabledModules.add(module);
+            }
+        }
+        return enabledModules;
+    }
+
+    public ArrayList<Module> getModules() {
+        return new ArrayList<>(modules);
+    }
+
+    public ArrayList<Module> getModulesByCategory(Module.Category category) {
+        ArrayList<Module> modulesCategory = new ArrayList<>();
+        for (Module module : this.modules) {
+            if (module.getCategory() == category) {
+                modulesCategory.add(module);
+            }
+        }
+        return modulesCategory;
+    }
+
+    public List<Module.Category> getCategories() {
+        return Arrays.asList(Module.Category.values());
+    }
+
+    public void onTick() {
+        for (Module module : modules) {
+            if (module.isEnabled()) {
+                module.onTick();
+            }
+        }
     }
 }

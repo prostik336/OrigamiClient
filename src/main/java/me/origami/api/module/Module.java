@@ -1,52 +1,63 @@
 package me.origami.api.module;
 
-import me.origami.api.settings.Setting;
-
-import java.util.ArrayList;
-import java.util.List;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.text.Text;
 
 public class Module {
-    private String name;
-    private String description;
-    private String category;  // Используем String, ссылаясь на Category
-    private boolean enabled;
-    private final List<Setting<?>> settings = new ArrayList<>();
+    protected final MinecraftClient mc = MinecraftClient.getInstance();
 
-    public Module(String name, String description, String category) {
+    private final String name;
+    private final Category category;
+    private boolean enabled;
+    private int keyBind = -1;
+
+    public Module(String name, Category category) {
         this.name = name;
-        this.description = description;
         this.category = category;
-        this.enabled = false;
+    }
+
+    public void toggle() {
+        this.enabled = !this.enabled;
+        if (this.enabled) {
+            onEnable();
+        } else {
+            onDisable();
+        }
     }
 
     public void onEnable() {}
     public void onDisable() {}
     public void onTick() {}
 
-    public boolean isOn() {
-        return enabled;
+    public String getName() { return name; }
+    public String getDescription() {
+        return getClass().getSimpleName() + " module for " + category.getName().toLowerCase() + " features";
+    }
+    public Category getCategory() { return category; }
+    public boolean isEnabled() { return enabled; }
+    public void setEnabled(boolean enabled) { this.enabled = enabled; }
+    public int getKeyBind() { return keyBind; }
+    public void setKeyBind(int keyBind) { this.keyBind = keyBind; }
+
+    public Text getDisplayName() {
+        return Text.literal(name);
     }
 
-    public void toggle() {
-        enabled = !enabled;
-        if (enabled) onEnable();
-        else onDisable();
-    }
+    public enum Category {
+        COMBAT("Combat"),
+        MOVEMENT("Movement"),
+        RENDER("Render"),
+        MISC("Misc"),
+        PLAYER("Player"),
+        CLIENT("Client"),
+        HUD("HUD");
 
-    public String getName() {
-        return name;
-    }
+        private final String name;
 
-    public String getCategory() {
-        return category;
-    }
+        Category(String name) {
+            this.name = name;
+        }
 
-    public List<Setting<?>> getSettings() {
-        return settings;
-    }
-
-    public <T> Setting<T> register(Setting<T> setting) {
-        settings.add(setting);
-        return setting;
+        public String getName() { return name; }
     }
 }
