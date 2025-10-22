@@ -42,15 +42,15 @@ public class CrystalAura extends Module {
     public void onTick() {
         if (mc.player == null || mc.world == null) return;
 
-        // Обновляем таймеры
+      
         if (placeTimer > 0) placeTimer--;
         if (breakTimer > 0) breakTimer--;
 
-        // Ищем цель
+    
         PlayerEntity target = findTarget();
         if (target == null) return;
 
-        // Ломаем кристаллы
+      
         if (breakTimer <= 0) {
             EndCrystalEntity crystal = findCrystalToBreak(target);
             if (crystal != null) {
@@ -60,7 +60,7 @@ public class CrystalAura extends Module {
             }
         }
 
-        // Ставим кристаллы
+     
         if (placeTimer <= 0) {
             BlockPos placePos = findPlacePos(target);
             if (placePos != null) {
