@@ -17,7 +17,6 @@ public class ModuleManager {
     public void load() {
         // Только существующие модули
         modules.add(new BetterChat());
-        modules.add(new CrystalAura());
     }
 
     public Module getModuleByName(String name) {
