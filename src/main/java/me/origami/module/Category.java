@@ -1,4 +1,4 @@
-package me.origami.api.module;
+package me.origami.module;
 
 public class Category {
     public static final String COMBAT = "COMBAT";

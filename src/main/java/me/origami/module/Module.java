@@ -1,19 +1,27 @@
-package me.origami.api.module;
+package me.origami.module;
 
+import me.origami.impl.settings.Setting;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Module {
     protected final MinecraftClient mc = MinecraftClient.getInstance();
 
     private final String name;
+    private final String description;
     private final Category category;
     private boolean enabled;
     private int keyBind = -1;
+    private List<Setting<?>> settings;
 
-    public Module(String name, Category category) {
+    public Module(String name, String description, Category category) {
         this.name = name;
+        this.description = description;
         this.category = category;
+        this.settings = new ArrayList<>();
     }
 
     public void toggle() {
@@ -30,14 +38,14 @@ public class Module {
     public void onTick() {}
 
     public String getName() { return name; }
-    public String getDescription() {
-        return getClass().getSimpleName() + " module for " + category.getName().toLowerCase() + " features";
-    }
+    public String getDescription() { return description; }
     public Category getCategory() { return category; }
     public boolean isEnabled() { return enabled; }
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
     public int getKeyBind() { return keyBind; }
     public void setKeyBind(int keyBind) { this.keyBind = keyBind; }
+    public List<Setting<?>> getSettings() { return settings; }
+    public void setSettings(List<Setting<?>> settings) { this.settings = settings != null ? settings : new ArrayList<>(); }
 
     public Text getDisplayName() {
         return Text.literal(name);
