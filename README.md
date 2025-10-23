@@ -2,8 +2,8 @@ https://discord.gg/BA39haFCcZ
 <p>
 dev:
 </p>
-- prostik336
--d1no
+<p>- prostik336</p>
+<p>-d1no</p>
 <p>helper:</p>
-- grok.ai
-- deepsik
+<p>- grok.ai</p>
+<p>- deepsik</p>
