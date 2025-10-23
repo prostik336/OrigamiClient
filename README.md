@@ -4,6 +4,6 @@ dev:
 </p>
 - prostik336
 -d1no
-helper:
+<p>helper:</p>
 - grok.ai
 - deepsik
