@@ -1,24 +1,29 @@
 package me.origami.impl.managers;
 
 import me.origami.module.Module;
+import me.origami.module.combat.AutoCrystal;
+import me.origami.module.render.FakePlayer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class ModuleManager {
-    public List<me.origami.module.Module> modules = new ArrayList<>();
+    public List<Module> modules = new ArrayList<>();
 
     public ModuleManager() {
         load();
     }
 
     public void load() {
-
+        // Add your modules here
+        modules.add(new FakePlayer());
+        modules.add(new AutoCrystal());
+        // Add other modules...
     }
 
-    public me.origami.module.Module getModuleByName(String name) {
-        for (me.origami.module.Module module : this.modules) {
+    public Module getModuleByName(String name) {
+        for (Module module : this.modules) {
             if (module.getName().equalsIgnoreCase(name)) {
                 return module;
             }
@@ -27,7 +32,7 @@ public class ModuleManager {
     }
 
     public void enableModule(String name) {
-        me.origami.module.Module module = this.getModuleByName(name);
+        Module module = this.getModuleByName(name);
         if (module != null) {
             module.setEnabled(true);
             module.onEnable();
@@ -35,16 +40,16 @@ public class ModuleManager {
     }
 
     public void disableModule(String name) {
-        me.origami.module.Module module = this.getModuleByName(name);
+        Module module = this.getModuleByName(name);
         if (module != null) {
             module.setEnabled(false);
             module.onDisable();
         }
     }
 
-    public ArrayList<me.origami.module.Module> getEnabledModules() {
-        ArrayList<me.origami.module.Module> enabledModules = new ArrayList<>();
-        for (me.origami.module.Module module : this.modules) {
+    public ArrayList<Module> getEnabledModules() {
+        ArrayList<Module> enabledModules = new ArrayList<>();
+        for (Module module : this.modules) {
             if (module.isEnabled()) {
                 enabledModules.add(module);
             }
@@ -52,13 +57,13 @@ public class ModuleManager {
         return enabledModules;
     }
 
-    public ArrayList<me.origami.module.Module> getModules() {
+    public ArrayList<Module> getModules() {
         return new ArrayList<>(modules);
     }
 
-    public ArrayList<me.origami.module.Module> getModulesByCategory(me.origami.module.Module.Category category) {
-        ArrayList<me.origami.module.Module> modulesCategory = new ArrayList<>();
-        for (me.origami.module.Module module : this.modules) {
+    public ArrayList<Module> getModulesByCategory(Module.Category category) {
+        ArrayList<Module> modulesCategory = new ArrayList<>();
+        for (Module module : this.modules) {
             if (module.getCategory() == category) {
                 modulesCategory.add(module);
             }
@@ -66,8 +71,8 @@ public class ModuleManager {
         return modulesCategory;
     }
 
-    public List<me.origami.module.Module.Category> getCategories() {
-        return Arrays.asList(me.origami.module.Module.Category.values());
+    public List<Module.Category> getCategories() {
+        return Arrays.asList(Module.Category.values());
     }
 
     public void onTick() {

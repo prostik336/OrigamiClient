@@ -14,7 +14,7 @@ public class Module {
     private final String name;
     private final String description;
     private final Category category;
-    private boolean enabled;
+    private boolean enabled = false; // FIXED: Initialize as false
     private int keyBind = -1;
     private List<Setting<?>> settings;
 

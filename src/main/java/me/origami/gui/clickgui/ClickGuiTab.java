@@ -1,10 +1,10 @@
 package me.origami.gui.clickgui;
 
+import me.origami.module.Module;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +22,7 @@ public class ClickGuiTab {
         this.y = y;
     }
 
-    public void update(double mouseX, double mouseY) {
+    public void update(int mouseX, int mouseY) {
         // можно анимации добавить позже
     }
 
@@ -95,4 +95,33 @@ public class ClickGuiTab {
     public void setX(int x) { this.x = x; }
     public void setY(int y) { this.y = y; }
     public int getWidth() { return width; }
+
+    // NEW: Get module at position for bind listening
+    public Module getModuleAt(double mouseX, double mouseY) {
+        if (collapsed) return null;
+
+        int curY = y + headerHeight;
+        for (ModuleComponent child : children) {
+            if (mouseX >= x && mouseX <= x + width &&
+                    mouseY >= curY && mouseY <= curY + child.getHeight()) {
+                return child.getModule();
+            }
+            curY += child.getHeight();
+        }
+        return null;
+    }
+
+    // NEW: Handle submodule clicks
+    public boolean handleSubModuleClick(double mouseX, double mouseY) {
+        if (collapsed) return false;
+
+        int curY = y + headerHeight;
+        for (ModuleComponent child : children) {
+            if (mouseY >= curY && mouseY <= curY + child.getHeight()) {
+                return child.handleSubModuleClick(mouseX, mouseY, x, curY);
+            }
+            curY += child.getHeight();
+        }
+        return false;
+    }
 }

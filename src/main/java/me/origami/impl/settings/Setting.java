@@ -1,5 +1,8 @@
 package me.origami.impl.settings;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class Setting<T> {
     private final String name;
     private T value;
@@ -9,6 +12,7 @@ public class Setting<T> {
     private final double minValue;
     private final double maxValue;
     private final double increment;
+    private final List<String> modes; // For enum/string settings
 
     // Constructor for non-numeric settings
     public Setting(String name, T defaultValue, String description) {
@@ -20,6 +24,20 @@ public class Setting<T> {
         this.minValue = 0.0;
         this.maxValue = 0.0;
         this.increment = 0.0;
+        this.modes = null;
+    }
+
+    // Constructor for string settings with modes
+    public Setting(String name, String defaultValue, String description, String[] modes) {
+        this.name = name;
+        this.value = (T) defaultValue;
+        this.defaultValue = (T) defaultValue;
+        this.description = description;
+        this.isNumeric = false;
+        this.minValue = 0.0;
+        this.maxValue = 0.0;
+        this.increment = 0.0;
+        this.modes = Arrays.asList(modes);
     }
 
     // Constructor for numeric settings with Double
@@ -32,6 +50,7 @@ public class Setting<T> {
         this.minValue = minValue;
         this.maxValue = maxValue;
         this.increment = increment;
+        this.modes = null;
     }
 
     // Constructor for numeric settings with Integer
@@ -44,15 +63,11 @@ public class Setting<T> {
         this.minValue = minValue;
         this.maxValue = maxValue;
         this.increment = increment;
+        this.modes = null;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public T getValue() {
-        return value;
-    }
+    public String getName() { return name; }
+    public T getValue() { return value; }
 
     public void setValue(T value) {
         if (isNumeric && value instanceof Number) {
@@ -71,27 +86,21 @@ public class Setting<T> {
         }
     }
 
-    public T getDefaultValue() {
-        return defaultValue;
-    }
+    public T getDefaultValue() { return defaultValue; }
+    public String getDescription() { return description; }
+    public boolean isNumeric() { return isNumeric; }
+    public double getMinValue() { return minValue; }
+    public double getMaxValue() { return maxValue; }
+    public double getIncrement() { return increment; }
+    public List<String> getModes() { return modes; }
+    public boolean hasModes() { return modes != null && !modes.isEmpty(); }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public boolean isNumeric() {
-        return isNumeric;
-    }
-
-    public double getMinValue() {
-        return minValue;
-    }
-
-    public double getMaxValue() {
-        return maxValue;
-    }
-
-    public double getIncrement() {
-        return increment;
+    // Cycle through modes for string settings
+    public void cycleMode() {
+        if (hasModes() && value instanceof String) {
+            int currentIndex = modes.indexOf((String) value);
+            int nextIndex = (currentIndex + 1) % modes.size();
+            setValue((T) modes.get(nextIndex));
+        }
     }
 }
