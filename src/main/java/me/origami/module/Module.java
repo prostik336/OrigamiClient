@@ -1,5 +1,6 @@
 package me.origami.module;
 
+import me.origami.impl.managers.ModuleManager;
 import me.origami.impl.settings.Setting;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
@@ -67,5 +68,11 @@ public class Module {
         }
 
         public String getName() { return name; }
+
+        // в OrigamiClient.java
+
+
+
     }
+
 }

@@ -1,7 +1,7 @@
 package me.origami;
 
 import me.origami.impl.managers.ModuleManager;
-import me.origami.gui.ClickGuiScreen;
+import me.origami.gui.clickgui.ClickGuiScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -11,7 +11,7 @@ import org.lwjgl.glfw.GLFW;
 
 public class OrigamiClient implements ClientModInitializer {
     public static final net.minecraft.client.MinecraftClient mc = net.minecraft.client.MinecraftClient.getInstance();
-    private final ModuleManager moduleManager = new ModuleManager();
+    public static ModuleManager MODULE_MANAGER = new ModuleManager();
 
     private KeyBinding openGuiKey;
 
@@ -25,7 +25,7 @@ public class OrigamiClient implements ClientModInitializer {
         ));
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            moduleManager.onTick();
+            MODULE_MANAGER.onTick();
 
             while (openGuiKey.wasPressed()) {
                 if (client.currentScreen == null) {

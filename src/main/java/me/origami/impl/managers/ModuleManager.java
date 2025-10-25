@@ -1,6 +1,5 @@
 package me.origami.impl.managers;
 
-import me.origami.module.misc.BetterChat;
 import me.origami.module.Module;
 
 import java.util.ArrayList;
@@ -15,8 +14,7 @@ public class ModuleManager {
     }
 
     public void load() {
-        // Только существующие модули
-        modules.add(new BetterChat());
+
     }
 
     public me.origami.module.Module getModuleByName(String name) {
