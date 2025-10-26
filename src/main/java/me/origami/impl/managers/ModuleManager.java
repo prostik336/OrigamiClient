@@ -4,71 +4,65 @@ import me.origami.module.Module;
 import me.origami.module.combat.AutoCrystal;
 import me.origami.module.render.FakePlayer;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ModuleManager {
-    public List<Module> modules = new ArrayList<>();
+    private final Map<String, Module> modules = new HashMap<>();
+    private final List<Module> moduleList = new ArrayList<>();
+    private static ModuleManager instance;
 
     public ModuleManager() {
+        instance = this;
         load();
     }
 
-    public void load() {
-        // Add your modules here
-        modules.add(new FakePlayer());
-        modules.add(new AutoCrystal());
-        // Add other modules...
+    public static ModuleManager getInstance() {
+        return instance;
+    }
+
+    public static List<Module> getModulesStatic() {
+        return instance != null ? instance.getModules() : new ArrayList<>();
+    }
+
+    private void load() {
+        Module[] initialModules = { new FakePlayer(), new AutoCrystal() };
+        for (Module module : initialModules) {
+            modules.put(module.getName().toLowerCase(), module);
+            moduleList.add(module);
+        }
     }
 
     public Module getModuleByName(String name) {
-        for (Module module : this.modules) {
-            if (module.getName().equalsIgnoreCase(name)) {
-                return module;
-            }
-        }
-        return null;
+        return modules.get(name.toLowerCase());
     }
 
     public void enableModule(String name) {
-        Module module = this.getModuleByName(name);
-        if (module != null) {
+        Module module = getModuleByName(name);
+        if (module != null && !module.isEnabled()) {
             module.setEnabled(true);
             module.onEnable();
         }
     }
 
     public void disableModule(String name) {
-        Module module = this.getModuleByName(name);
-        if (module != null) {
+        Module module = getModuleByName(name);
+        if (module != null && module.isEnabled()) {
             module.setEnabled(false);
             module.onDisable();
         }
     }
 
-    public ArrayList<Module> getEnabledModules() {
-        ArrayList<Module> enabledModules = new ArrayList<>();
-        for (Module module : this.modules) {
-            if (module.isEnabled()) {
-                enabledModules.add(module);
-            }
-        }
-        return enabledModules;
+    public List<Module> getEnabledModules() {
+        return moduleList.stream().filter(Module::isEnabled).collect(Collectors.toList());
     }
 
-    public ArrayList<Module> getModules() {
-        return new ArrayList<>(modules);
+    public List<Module> getModules() {
+        return new ArrayList<>(moduleList);
     }
 
-    public ArrayList<Module> getModulesByCategory(Module.Category category) {
-        ArrayList<Module> modulesCategory = new ArrayList<>();
-        for (Module module : this.modules) {
-            if (module.getCategory() == category) {
-                modulesCategory.add(module);
-            }
-        }
-        return modulesCategory;
+    public List<Module> getModulesByCategory(Module.Category category) {
+        return moduleList.stream().filter(m -> m.getCategory() == category).collect(Collectors.toList());
     }
 
     public List<Module.Category> getCategories() {
@@ -76,10 +70,8 @@ public class ModuleManager {
     }
 
     public void onTick() {
-        for (Module module : modules) {
-            if (module.isEnabled()) {
-                module.onTick();
-            }
-        }
+        moduleList.forEach(module -> {
+            if (module.isEnabled()) module.onTick();
+        });
     }
 }

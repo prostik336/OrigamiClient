@@ -19,9 +19,9 @@ public class ClickGuiScreen extends Screen {
     }
 
     @Override
-    public void render(DrawContext drawContext, int mouseX, int mouseY, float delta) {
-        super.render(drawContext, mouseX, mouseY, delta);
-        manager.draw(drawContext, mouseX, mouseY, delta);
+    public void render(DrawContext ctx, int mouseX, int mouseY, float delta) {
+        super.render(ctx, mouseX, mouseY, delta);
+        manager.draw(ctx, mouseX, mouseY, delta);
     }
 
     @Override
@@ -38,43 +38,27 @@ public class ClickGuiScreen extends Screen {
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-        manager.updateSettingDrag(mouseX, mouseY);
+        manager.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
         return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double dx, double dy) {
-        manager.mouseScrolled(dy);
-        return super.mouseScrolled(mouseX, mouseY, dx, dy);
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (manager.keyPressed(keyCode)) {
+            return true;
+        }
+        if (manager.handleKeyPressed(keyCode, scanCode, modifiers)) {
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override
     public boolean charTyped(char chr, int modifiers) {
-        if (manager.hasSelectedStringSetting()) {
-            manager.handleCharTyped(chr);
+        if (manager.handleCharTyped(chr, modifiers)) {
             return true;
         }
         return super.charTyped(chr, modifiers);
-    }
-
-    @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (manager.handleKeybindListening(keyCode)) {
-            return true;
-        }
-
-        if (manager.hasSelectedStringSetting()) {
-            if (keyCode == 259) { // Backspace
-                manager.handleBackspace();
-                return true;
-            }
-            if (keyCode == 257 || keyCode == 256) { // Enter or Escape
-                manager.finishStringEditing();
-                return true;
-            }
-        }
-
-        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override

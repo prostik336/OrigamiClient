@@ -11,28 +11,40 @@ public class GuiConfig {
         if (FILE.exists()) {
             try (FileInputStream fis = new FileInputStream(FILE)) {
                 P.load(fis);
-            } catch (Exception ignored) {}
+            } catch (IOException e) {
+                System.err.println("Failed to load GUI config: " + e.getMessage());
+            }
         }
     }
 
     public static void saveTabPosition(ClickGuiTab t) {
-        P.setProperty(t.getTitle() + ".x", Integer.toString(t.getX()));
-        P.setProperty(t.getTitle() + ".y", Integer.toString(t.getY()));
+        P.setProperty(t.getTitle() + ".x", String.valueOf(t.getX()));
+        P.setProperty(t.getTitle() + ".y", String.valueOf(t.getY()));
         try (FileOutputStream fos = new FileOutputStream(FILE)) {
             P.store(fos, "Origami ClickGui positions");
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException e) {
+            System.err.println("Failed to save GUI config: " + e.getMessage());
         }
     }
 
     public static void loadTabPosition(ClickGuiTab t) {
-        String sx = P.getProperty(t.getTitle() + ".x");
-        String sy = P.getProperty(t.getTitle() + ".y");
-        if (sx != null) {
-            try { t.setX(Integer.parseInt(sx)); } catch (Exception ignored) {}
+        try {
+            t.setX(Integer.parseInt(P.getProperty(t.getTitle() + ".x", String.valueOf(t.getX()))));
+            t.setY(Integer.parseInt(P.getProperty(t.getTitle() + ".y", String.valueOf(t.getY()))));
+        } catch (NumberFormatException e) {
+            System.err.println("Invalid position format for tab " + t.getTitle());
         }
-        if (sy != null) {
-            try { t.setY(Integer.parseInt(sy)); } catch (Exception ignored) {}
+    }
+
+    public static void saveAllTabs(ClickGuiManager manager) {
+        for (ClickGuiTab tab : manager.getTabs()) {
+            saveTabPosition(tab);
+        }
+    }
+
+    public static void loadAllTabs(ClickGuiManager manager) {
+        for (ClickGuiTab tab : manager.getTabs()) {
+            loadTabPosition(tab);
         }
     }
 }

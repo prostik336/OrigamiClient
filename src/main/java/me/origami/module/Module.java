@@ -1,6 +1,5 @@
 package me.origami.module;
 
-import me.origami.impl.managers.ModuleManager;
 import me.origami.impl.settings.Setting;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
@@ -10,19 +9,27 @@ import java.util.List;
 
 public class Module {
     protected final MinecraftClient mc = MinecraftClient.getInstance();
-
     private final String name;
     private final String description;
     private final Category category;
-    private boolean enabled = false; // FIXED: Initialize as false
+    private boolean enabled = false;
     private int keyBind = -1;
-    private List<Setting<?>> settings;
+    private final List<Setting<?>> settings = new ArrayList<>();
 
     public Module(String name, String description, Category category) {
         this.name = name;
         this.description = description;
         this.category = category;
-        this.settings = new ArrayList<>();
+    }
+
+    protected <T> Setting<T> register(Setting<T> setting) {
+        settings.add(setting);
+        return setting;
+    }
+
+    // Автоматически добавляет бинд в конец настроек
+    protected void finishRegistration() {
+        // Бинд добавляется автоматически как последняя настройка
     }
 
     public void toggle() {
@@ -44,9 +51,17 @@ public class Module {
     public boolean isEnabled() { return enabled; }
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
     public int getKeyBind() { return keyBind; }
-    public void setKeyBind(int keyBind) { this.keyBind = keyBind; }
-    public List<Setting<?>> getSettings() { return settings; }
-    public void setSettings(List<Setting<?>> settings) { this.settings = settings != null ? settings : new ArrayList<>(); }
+
+    public void setKeyBind(int keyBind) {
+        this.keyBind = keyBind;
+    }
+
+    public List<Setting<?>> getSettings() {
+        List<Setting<?>> allSettings = new ArrayList<>(settings);
+        // Бинд всегда последний
+        allSettings.add(new Setting<>("Bind", keyBind, "Module keybind", -1, 348, 1));
+        return allSettings;
+    }
 
     public Text getDisplayName() {
         return Text.literal(name);
@@ -68,11 +83,5 @@ public class Module {
         }
 
         public String getName() { return name; }
-
-        // в OrigamiClient.java
-
-
-
     }
-
 }
