@@ -22,20 +22,16 @@ public class ClickGuiTab {
         this.y = y;
     }
 
-    public void update(int mouseX, int mouseY) {
-        // можно анимации добавить позже
-    }
-
     public void draw(DrawContext ctx, float partialTicks) {
         TextRenderer tr = MinecraftClient.getInstance().textRenderer;
-        // header background
+
+        // Header
         ctx.fill(x, y - 1, x + width, y + headerHeight, 0xFF2E2E2E);
-        // title
         ctx.drawText(tr, title, x + 6, y + 3, 0xFFFFFFFF, false);
-        // border
         ctx.fill(x, y - 1, x + 1, y + headerHeight, 0xFF8B2B2B);
         ctx.fill(x + width - 1, y - 1, x + width, y + headerHeight, 0xFF8B2B2B);
 
+        // Content
         if (!collapsed) {
             int curY = y + headerHeight;
             for (ModuleComponent child : children) {
@@ -50,45 +46,59 @@ public class ClickGuiTab {
     }
 
     public boolean isMouseInside(double mx, double my) {
-        int bottom = y + headerHeight;
+        if (mx < x || mx > x + width) return false;
+
+        double bottom = y + headerHeight;
         if (!collapsed) {
-            for (ModuleComponent c : children) bottom += c.getHeight();
+            for (ModuleComponent child : children) {
+                bottom += child.getHeight();
+            }
         }
-        return mx >= x && mx <= x + width && my >= y && my <= bottom;
+
+        return my >= y && my <= bottom;
     }
 
     public boolean onLeftClick(double mouseX, double mouseY) {
         if (collapsed) return false;
+
         int curY = y + headerHeight;
-        for (ModuleComponent c : children) {
-            if (mouseY >= curY && mouseY <= curY + c.getHeight()) {
-                // Передаем координаты для точной проверки
-                return c.onLeftClick(mouseX, mouseY, x, curY) || c.handleSubModuleClick(mouseX, mouseY, x, curY);
+        for (ModuleComponent child : children) {
+            if (mouseY >= curY && mouseY <= curY + child.getHeight()) {
+                return child.onLeftClick(mouseX, mouseY, x, curY) ||
+                        child.handleSettingClick(mouseX, mouseY, x, curY);
             }
-            curY += c.getHeight();
+            curY += child.getHeight();
         }
         return false;
     }
 
     public boolean onRightClick(double mouseX, double mouseY) {
         if (collapsed) return false;
+
         int curY = y + headerHeight;
-        for (ModuleComponent c : children) {
-            if (mouseY >= curY && mouseY <= curY + c.getHeight()) {
-                // Передаем координаты для точной проверки
-                return c.onRightClick(mouseX, mouseY, x, curY) || c.handleSubModuleClick(mouseX, mouseY, x, curY);
+        for (ModuleComponent child : children) {
+            if (mouseY >= curY && mouseY <= curY + child.getHeight()) {
+                return child.onRightClick(mouseX, mouseY, x, curY) ||
+                        child.handleSettingRightClick(mouseX, mouseY, x, curY);
             }
-            curY += c.getHeight();
+            curY += child.getHeight();
         }
         return false;
     }
 
-    public void toggleCollapsed() { collapsed = !collapsed; }
+    public void toggleCollapsed() {
+        collapsed = !collapsed;
+    }
 
-    public void addModule(ModuleComponent comp) { children.add(comp); }
+    public void addModule(ModuleComponent comp) {
+        children.add(comp);
+    }
 
-    public void clearModules() { children.clear(); }
+    public void clearModules() {
+        children.clear();
+    }
 
+    // Getters and setters
     public String getTitle() { return title; }
     public int getX() { return x; }
     public int getY() { return y; }
@@ -96,7 +106,6 @@ public class ClickGuiTab {
     public void setY(int y) { this.y = y; }
     public int getWidth() { return width; }
 
-    // NEW: Get module at position for bind listening
     public Module getModuleAt(double mouseX, double mouseY) {
         if (collapsed) return null;
 
@@ -110,50 +119,25 @@ public class ClickGuiTab {
         }
         return null;
     }
-    public void handleMouseRelease() {
-        if (collapsed) return;
-        for (ModuleComponent c : children) {
-            c.handleMouseRelease();
-        }
-    }
 
-    // NEW: Handle submodule clicks
-    public boolean handleSubModuleClick(double mouseX, double mouseY) {
-        if (collapsed) return false;
+    public void handleSettingDrag(double mouseX, double mouseY) {
+        if (collapsed) return;
 
         int curY = y + headerHeight;
         for (ModuleComponent child : children) {
             if (mouseY >= curY && mouseY <= curY + child.getHeight()) {
-                return child.handleSubModuleClick(mouseX, mouseY, x, curY);
+                child.handleSettingDrag(mouseX, mouseY, x, curY);
+                return;
             }
             curY += child.getHeight();
         }
-        return false;
     }
 
-    // NEW: Handle setting clicks
-    public boolean handleSettingClick(double mouseX, double mouseY) {
-        if (collapsed) return false;
-        int curY = y + headerHeight;
-        for (ModuleComponent c : children) {
-            if (mouseY >= curY && mouseY <= curY + c.getHeight()) {
-                return c.handleSubModuleClick(mouseX, mouseY, x, curY);
-            }
-            curY += c.getHeight();
-        }
-        return false;
-    }
-
-    // NEW: Handle setting drag
-    public void handleSettingDrag(double mouseX, double mouseY) {
+    public void handleMouseRelease() {
         if (collapsed) return;
-        int curY = y + headerHeight;
-        for (ModuleComponent c : children) {
-            if (mouseY >= curY && mouseY <= curY + c.getHeight()) {
-                c.handleSettingDrag(mouseX, mouseY, x, curY);
-                return;
-            }
-            curY += c.getHeight();
+
+        for (ModuleComponent child : children) {
+            child.handleMouseRelease();
         }
     }
 }

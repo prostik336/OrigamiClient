@@ -1,7 +1,5 @@
 package me.origami.gui.clickgui;
 
-import me.origami.OrigamiClient;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
@@ -12,8 +10,7 @@ public class ClickGuiScreen extends Screen {
     public ClickGuiScreen() {
         super(Text.literal("Origami ClickGui"));
         this.manager = ClickGuiManager.get();
-        // при открытии загружаем модули из ModuleManager
-        this.manager.loadModulesFromClient();
+        manager.loadModulesFromClient();
     }
 
     @Override
@@ -53,7 +50,6 @@ public class ClickGuiScreen extends Screen {
 
     @Override
     public boolean charTyped(char chr, int modifiers) {
-        // Если есть выбранная строковая настройка - обрабатываем ввод
         if (manager.hasSelectedStringSetting()) {
             manager.handleCharTyped(chr);
             return true;
@@ -63,27 +59,19 @@ public class ClickGuiScreen extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        // если менеджер в режиме ожидания бинда — передаём
         if (manager.handleKeybindListening(keyCode)) {
             return true;
         }
 
-        // Обработка Backspace для строковых настроек
-        if (manager.hasSelectedStringSetting() && keyCode == 259) { // Backspace
-            manager.handleBackspace();
-            return true;
-        }
-
-        // Обработка Enter для завершения редактирования
-        if (manager.hasSelectedStringSetting() && keyCode == 257) { // Enter
-            manager.finishStringEditing();
-            return true;
-        }
-
-        // Обработка Escape для отмены редактирования
-        if (manager.hasSelectedStringSetting() && keyCode == 256) { // Escape
-            manager.finishStringEditing();
-            return true;
+        if (manager.hasSelectedStringSetting()) {
+            if (keyCode == 259) { // Backspace
+                manager.handleBackspace();
+                return true;
+            }
+            if (keyCode == 257 || keyCode == 256) { // Enter or Escape
+                manager.finishStringEditing();
+                return true;
+            }
         }
 
         return super.keyPressed(keyCode, scanCode, modifiers);
