@@ -62,8 +62,8 @@ public class ClickGuiTab {
         int curY = y + headerHeight;
         for (ModuleComponent c : children) {
             if (mouseY >= curY && mouseY <= curY + c.getHeight()) {
-                c.onLeftClick();
-                return true;
+                // Передаем координаты для точной проверки
+                return c.onLeftClick(mouseX, mouseY, x, curY) || c.handleSubModuleClick(mouseX, mouseY, x, curY);
             }
             curY += c.getHeight();
         }
@@ -75,8 +75,8 @@ public class ClickGuiTab {
         int curY = y + headerHeight;
         for (ModuleComponent c : children) {
             if (mouseY >= curY && mouseY <= curY + c.getHeight()) {
-                c.onRightClick();
-                return true;
+                // Передаем координаты для точной проверки
+                return c.onRightClick(mouseX, mouseY, x, curY) || c.handleSubModuleClick(mouseX, mouseY, x, curY);
             }
             curY += c.getHeight();
         }
@@ -110,6 +110,12 @@ public class ClickGuiTab {
         }
         return null;
     }
+    public void handleMouseRelease() {
+        if (collapsed) return;
+        for (ModuleComponent c : children) {
+            c.handleMouseRelease();
+        }
+    }
 
     // NEW: Handle submodule clicks
     public boolean handleSubModuleClick(double mouseX, double mouseY) {
@@ -123,5 +129,31 @@ public class ClickGuiTab {
             curY += child.getHeight();
         }
         return false;
+    }
+
+    // NEW: Handle setting clicks
+    public boolean handleSettingClick(double mouseX, double mouseY) {
+        if (collapsed) return false;
+        int curY = y + headerHeight;
+        for (ModuleComponent c : children) {
+            if (mouseY >= curY && mouseY <= curY + c.getHeight()) {
+                return c.handleSubModuleClick(mouseX, mouseY, x, curY);
+            }
+            curY += c.getHeight();
+        }
+        return false;
+    }
+
+    // NEW: Handle setting drag
+    public void handleSettingDrag(double mouseX, double mouseY) {
+        if (collapsed) return;
+        int curY = y + headerHeight;
+        for (ModuleComponent c : children) {
+            if (mouseY >= curY && mouseY <= curY + c.getHeight()) {
+                c.handleSettingDrag(mouseX, mouseY, x, curY);
+                return;
+            }
+            curY += c.getHeight();
+        }
     }
 }

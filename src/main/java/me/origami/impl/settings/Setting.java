@@ -69,20 +69,21 @@ public class Setting<T> {
     public String getName() { return name; }
     public T getValue() { return value; }
 
-    public void setValue(T value) {
+    public void setValue(Object value) {
         if (isNumeric && value instanceof Number) {
             double val = ((Number) value).doubleValue();
-            if (value instanceof Integer) {
+            if (this.value instanceof Integer) {
                 val = Math.round(val / increment) * increment;
                 val = Math.max(minValue, Math.min(maxValue, val));
                 this.value = (T) Integer.valueOf((int) val);
-            } else if (value instanceof Double) {
+            } else if (this.value instanceof Double) {
                 val = Math.round(val / increment) * increment;
                 val = Math.max(minValue, Math.min(maxValue, val));
                 this.value = (T) Double.valueOf(val);
             }
         } else {
-            this.value = value;
+            // Для не-числовых значений просто присваиваем
+            this.value = (T) value;
         }
     }
 
@@ -100,7 +101,7 @@ public class Setting<T> {
         if (hasModes() && value instanceof String) {
             int currentIndex = modes.indexOf((String) value);
             int nextIndex = (currentIndex + 1) % modes.size();
-            setValue((T) modes.get(nextIndex));
+            setValue(modes.get(nextIndex));
         }
     }
 }

@@ -17,7 +17,9 @@ public class ClickGuiScreen extends Screen {
     }
 
     @Override
-    public boolean shouldPause() { return false; }
+    public boolean shouldPause() {
+        return false;
+    }
 
     @Override
     public void render(DrawContext drawContext, int mouseX, int mouseY, float delta) {
@@ -38,9 +40,25 @@ public class ClickGuiScreen extends Screen {
     }
 
     @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+        manager.updateSettingDrag(mouseX, mouseY);
+        return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+    }
+
+    @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double dx, double dy) {
         manager.mouseScrolled(dy);
         return super.mouseScrolled(mouseX, mouseY, dx, dy);
+    }
+
+    @Override
+    public boolean charTyped(char chr, int modifiers) {
+        // Если есть выбранная строковая настройка - обрабатываем ввод
+        if (manager.hasSelectedStringSetting()) {
+            manager.handleCharTyped(chr);
+            return true;
+        }
+        return super.charTyped(chr, modifiers);
     }
 
     @Override
@@ -49,6 +67,25 @@ public class ClickGuiScreen extends Screen {
         if (manager.handleKeybindListening(keyCode)) {
             return true;
         }
+
+        // Обработка Backspace для строковых настроек
+        if (manager.hasSelectedStringSetting() && keyCode == 259) { // Backspace
+            manager.handleBackspace();
+            return true;
+        }
+
+        // Обработка Enter для завершения редактирования
+        if (manager.hasSelectedStringSetting() && keyCode == 257) { // Enter
+            manager.finishStringEditing();
+            return true;
+        }
+
+        // Обработка Escape для отмены редактирования
+        if (manager.hasSelectedStringSetting() && keyCode == 256) { // Escape
+            manager.finishStringEditing();
+            return true;
+        }
+
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 

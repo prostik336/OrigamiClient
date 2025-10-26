@@ -3,6 +3,7 @@ package me.origami.gui.clickgui;
 import me.origami.OrigamiClient;
 import me.origami.module.Module;
 import me.origami.impl.managers.ModuleManager;
+import me.origami.impl.settings.Setting;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import org.lwjgl.glfw.GLFW;
@@ -25,6 +26,13 @@ public class ClickGuiManager {
     // Bind system fix
     private Module bindListeningModule = null;
     private boolean isListeningForBind = false;
+
+    // Setting drag system
+    private boolean isDraggingSetting = false;
+
+    // String editing system
+    private Setting<?> selectedStringSetting = null;
+    private StringBuilder stringBuilder = new StringBuilder();
 
     private ClickGuiManager() {
         int startX = 8;
@@ -75,6 +83,23 @@ public class ClickGuiManager {
                     0xFFFFFFFF, true);
         }
 
+        // Draw string editing overlay
+        if (hasSelectedStringSetting() && selectedStringSetting != null) {
+            ctx.fill(0, 0, mc.getWindow().getWidth(), mc.getWindow().getHeight(), 0x80000000);
+            String text = "Editing " + selectedStringSetting.getName() + ": " + stringBuilder.toString() + "_";
+            String hint = "Press ENTER to confirm, ESC to cancel";
+            int textWidth = mc.textRenderer.getWidth(text);
+            int hintWidth = mc.textRenderer.getWidth(hint);
+            ctx.drawText(mc.textRenderer, text,
+                    mc.getWindow().getWidth() / 2 - textWidth / 2,
+                    mc.getWindow().getHeight() / 2 - 15,
+                    0xFFFFFFFF, true);
+            ctx.drawText(mc.textRenderer, hint,
+                    mc.getWindow().getWidth() / 2 - hintWidth / 2,
+                    mc.getWindow().getHeight() / 2 + 5,
+                    0xFFCCCCCC, true);
+        }
+
         for (ClickGuiTab t : tabs) {
             t.update(mouseX, mouseY);
             t.draw(ctx, partialTicks);
@@ -87,7 +112,7 @@ public class ClickGuiManager {
     }
 
     public void mouseClicked(double mouseX, double mouseY, int button) {
-        if (isListeningForBind) return;
+        if (isListeningForBind || hasSelectedStringSetting()) return;
 
         if (button == 0) {
             // Check for tab dragging first
@@ -104,6 +129,16 @@ public class ClickGuiManager {
             for (ClickGuiTab t : tabs) {
                 if (t.isMouseInside(mouseX, mouseY)) {
                     if (t.onLeftClick(mouseX, mouseY)) return;
+                }
+            }
+
+            // Check for setting clicks and start drag
+            for (ClickGuiTab t : tabs) {
+                if (t.isMouseInside(mouseX, mouseY)) {
+                    if (t.handleSettingClick(mouseX, mouseY)) {
+                        isDraggingSetting = true;
+                        return;
+                    }
                 }
             }
 
@@ -169,11 +204,59 @@ public class ClickGuiManager {
     public void mouseReleased(double mouseX, double mouseY, int button) {
         if (button == 0) {
             grabbedTab = null;
+            isDraggingSetting = false;
+
+            // Обработка отпускания слайдера
+            for (ClickGuiTab t : tabs) {
+                t.handleMouseRelease();
+            }
         }
     }
 
+    // NEW: Update setting drag
+    public void updateSettingDrag(double mouseX, double mouseY) {
+        if (isDraggingSetting) {
+            for (ClickGuiTab t : tabs) {
+                if (t.isMouseInside(mouseX, mouseY)) {
+                    t.handleSettingDrag(mouseX, mouseY);
+                    return;
+                }
+            }
+        }
+    }
+
+    // NEW: String editing methods
+    public boolean hasSelectedStringSetting() {
+        return selectedStringSetting != null;
+    }
+
+    public void startStringEditing(Setting<?> setting, String currentValue) {
+        this.selectedStringSetting = setting;
+        this.stringBuilder.setLength(0);
+        this.stringBuilder.append(currentValue);
+    }
+
+    public void handleCharTyped(char chr) {
+        if (selectedStringSetting != null) {
+            stringBuilder.append(chr);
+            selectedStringSetting.setValue(stringBuilder.toString());
+        }
+    }
+
+    public void handleBackspace() {
+        if (selectedStringSetting != null && stringBuilder.length() > 0) {
+            stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+            selectedStringSetting.setValue(stringBuilder.toString());
+        }
+    }
+
+    public void finishStringEditing() {
+        selectedStringSetting = null;
+        stringBuilder.setLength(0);
+    }
+
     public void mouseScrolled(double verticalAmount) {
-        if (isListeningForBind) return;
+        if (isListeningForBind || hasSelectedStringSetting()) return;
         for (ClickGuiTab t : tabs) t.setY((int)(t.getY() + verticalAmount * 30));
     }
 
@@ -182,5 +265,6 @@ public class ClickGuiManager {
             GuiConfig.saveTabPosition(t);
         }
         stopBindListening();
+        finishStringEditing();
     }
 }
