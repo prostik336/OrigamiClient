@@ -13,7 +13,6 @@ public class Module {
     private final String description;
     private final Category category;
     private boolean enabled = false;
-    private int keyBind = -1;
     private final List<Setting<?>> settings = new ArrayList<>();
 
     public Module(String name, String description, Category category) {
@@ -24,12 +23,8 @@ public class Module {
 
     protected <T> Setting<T> register(Setting<T> setting) {
         settings.add(setting);
+        setting.setParentModule(this); // УСТАНАВЛИВАЕМ РОДИТЕЛЬСКИЙ МОДУЛЬ
         return setting;
-    }
-
-    // Автоматически добавляет бинд в конец настроек
-    protected void finishRegistration() {
-        // Бинд добавляется автоматически как последняя настройка
     }
 
     public void toggle() {
@@ -41,6 +36,12 @@ public class Module {
         }
     }
 
+    // НОВЫЙ МЕТОД: вызывается когда настройка изменяется
+    public void onSettingChanged(Setting<?> setting) {
+        // Переопределяется в конкретных модулях
+        System.out.println("Setting changed in " + getName() + ": " + setting.getName() + " = " + setting.getValue());
+    }
+
     public void onEnable() {}
     public void onDisable() {}
     public void onTick() {}
@@ -50,17 +51,9 @@ public class Module {
     public Category getCategory() { return category; }
     public boolean isEnabled() { return enabled; }
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
-    public int getKeyBind() { return keyBind; }
-
-    public void setKeyBind(int keyBind) {
-        this.keyBind = keyBind;
-    }
 
     public List<Setting<?>> getSettings() {
-        List<Setting<?>> allSettings = new ArrayList<>(settings);
-        // Бинд всегда последний
-        allSettings.add(new Setting<>("Bind", keyBind, "Module keybind", -1, 348, 1));
-        return allSettings;
+        return new ArrayList<>(settings);
     }
 
     public Text getDisplayName() {

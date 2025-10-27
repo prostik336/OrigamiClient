@@ -1,7 +1,6 @@
 package me.origami;
 
 import me.origami.impl.managers.ModuleManager;
-import me.origami.impl.utils.KeyBindHandler;
 import me.origami.gui.clickgui.ClickGuiScreen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -27,19 +26,6 @@ public class OrigamiClient implements ClientModInitializer {
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             MODULE_MANAGER.onTick();
-            KeyBindHandler.updateKeyStates();
-
-            // Обработка биндов модулей
-            if (client.currentScreen == null) { // Только когда GUI закрыт
-                for (me.origami.module.Module module : MODULE_MANAGER.getModules()) {
-                    if (module.getKeyBind() != -1) {
-                        // Проверяем нажатие клавиши бинда с защитой от залипания
-                        if (KeyBindHandler.isKeyPressed(module.getKeyBind())) {
-                            module.toggle();
-                        }
-                    }
-                }
-            }
 
             while (openGuiKey.wasPressed()) {
                 if (client.currentScreen == null) {

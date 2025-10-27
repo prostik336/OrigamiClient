@@ -1,6 +1,5 @@
 package me.origami.gui.clickgui;
 
-import me.origami.module.Module;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
@@ -37,25 +36,30 @@ public class ClickGuiTab {
     }
 
     public boolean handleMouseClick(double mouseX, double mouseY, int button) {
+        // Клик по заголовку таба
         if (mouseInBounds(mouseX, mouseY, x, y, width, headerHeight)) {
             if (button == 1) collapsed = !collapsed;
             return true;
         }
         if (collapsed) return false;
 
+        // Клики по модулям и их настройкам
         int curY = y + headerHeight;
         for (ModuleComponent module : modules) {
             int moduleHeight = module.getHeight();
             if (mouseInBounds(mouseX, mouseY, x, curY, width, moduleHeight)) {
+                // Клик по заголовку модуля
                 if (button == 0 && mouseInBounds(mouseX, mouseY, x, curY, width, 14)) {
                     module.getModule().toggle();
                     return true;
                 }
+                // ПКМ по заголовку модуля - открыть/закрыть настройки
                 if (button == 1 && mouseInBounds(mouseX, mouseY, x, curY, width, 14)) {
                     module.toggleSettings();
                     return true;
                 }
-                return module.handleClick(mouseX, mouseY, x, curY, button == 1);
+                // Клики внутри настроек модуля
+                return module.handleClick(mouseX, mouseY, x, curY, button);
             }
             curY += moduleHeight;
         }
@@ -82,6 +86,18 @@ public class ClickGuiTab {
         }
     }
 
+    private boolean mouseInBounds(double mx, double my, int x, int y, int w, int h) {
+        return mx >= x && mx <= x + w && my >= y && my <= y + h;
+    }
+
+    public void addModule(ModuleComponent module) {
+        modules.add(module);
+    }
+
+    public void clearModules() {
+        modules.clear();
+    }
+
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (collapsed) return false;
 
@@ -103,19 +119,6 @@ public class ClickGuiTab {
         }
         return false;
     }
-
-    private boolean mouseInBounds(double mx, double my, int x, int y, int w, int h) {
-        return mx >= x && mx <= x + w && my >= y && my <= y + h;
-    }
-
-    public void addModule(ModuleComponent module) {
-        modules.add(module);
-    }
-
-    public void clearModules() {
-        modules.clear();
-    }
-
     public String getTitle() { return title; }
     public int getX() { return x; }
     public int getY() { return y; }
@@ -123,21 +126,4 @@ public class ClickGuiTab {
     public void setY(int y) { this.y = y; }
     public int getWidth() { return width; }
     public List<ModuleComponent> getModules() { return modules; }
-
-    public Module getModuleAt(double mouseX, double mouseY) {
-        if (collapsed) return null;
-
-        int curY = y + headerHeight;
-        for (ModuleComponent module : modules) {
-            if (mouseInBounds(mouseX, mouseY, x, curY, width, 14)) {
-                return module.getModule();
-            }
-            curY += module.getHeight();
-        }
-        return null;
-    }
-
-    public boolean toggleSettings() {
-        return !collapsed;
-    }
 }

@@ -1,5 +1,7 @@
 package me.origami.impl.settings;
 
+import me.origami.module.Module;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
@@ -8,21 +10,22 @@ import java.util.ArrayList;
 public class Setting<T> {
     private final String name;
     private T value;
-    private final String description;
     private final boolean isNumeric;
     private final double minValue;
     private final double maxValue;
     private final double increment;
-    private final List<T> modes; // Changed to List<T> for enums
+    private final List<T> modes;
+    private Module parentModule;
+
+    // Система под-настроек
     private final List<Setting<?>> subSettings = new ArrayList<>();
     private boolean expanded = false;
     private boolean modeExpanded = false;
 
-    // Constructor for non-numeric, non-mode settings (e.g., Boolean, String)
-    public Setting(String name, T defaultValue, String description) {
+    // Boolean, String
+    public Setting(String name, T defaultValue) {
         this.name = name;
         this.value = defaultValue;
-        this.description = description;
         this.isNumeric = false;
         this.minValue = 0;
         this.maxValue = 0;
@@ -30,11 +33,10 @@ public class Setting<T> {
         this.modes = null;
     }
 
-    // Constructor for enum modes
-    public <E extends Enum<E>> Setting(String name, E defaultValue, String description, Class<E> enumClass) {
+    // Enum
+    public <E extends Enum<E>> Setting(String name, E defaultValue, Class<E> enumClass) {
         this.name = name;
         this.value = (T) defaultValue;
-        this.description = description;
         this.isNumeric = false;
         this.minValue = 0;
         this.maxValue = 0;
@@ -42,11 +44,10 @@ public class Setting<T> {
         this.modes = (List<T>) Arrays.asList(enumClass.getEnumConstants());
     }
 
-    // Constructor for numeric double settings
-    public Setting(String name, Double defaultValue, String description, double minValue, double maxValue, double increment) {
+    // Double
+    public Setting(String name, Double defaultValue, double minValue, double maxValue, double increment) {
         this.name = name;
         this.value = (T) defaultValue;
-        this.description = description;
         this.isNumeric = true;
         this.minValue = minValue;
         this.maxValue = maxValue;
@@ -54,11 +55,10 @@ public class Setting<T> {
         this.modes = null;
     }
 
-    // Constructor for numeric integer settings
-    public Setting(String name, Integer defaultValue, String description, int minValue, int maxValue, int increment) {
+    // Integer
+    public Setting(String name, Integer defaultValue, int minValue, int maxValue, int increment) {
         this.name = name;
         this.value = (T) defaultValue;
-        this.description = description;
         this.isNumeric = true;
         this.minValue = minValue;
         this.maxValue = maxValue;
@@ -66,9 +66,18 @@ public class Setting<T> {
         this.modes = null;
     }
 
+    // Установка родительского модуля
+    public void setParentModule(Module module) {
+        this.parentModule = module;
+        // Рекурсивно устанавливаем для всех под-настроек
+        for (Setting<?> subSetting : subSettings) {
+            subSetting.setParentModule(module);
+        }
+    }
+
+    // Геттеры
     public String getName() { return name; }
     public T getValue() { return value; }
-    public String getDescription() { return description; }
     public boolean isNumeric() { return isNumeric; }
     public double getMinValue() { return minValue; }
     public double getMaxValue() { return maxValue; }
@@ -76,26 +85,12 @@ public class Setting<T> {
     public List<T> getModes() { return modes; }
     public boolean hasModes() { return modes != null && !modes.isEmpty(); }
 
-    public void setValue(Object value) {
-        if (isNumeric && value instanceof Number) {
-            double val = ((Number) value).doubleValue();
-            val = Math.max(minValue, Math.min(maxValue, val));
-            if (this.value instanceof Integer) {
-                val = Math.round(val / increment) * increment;
-                this.value = (T) Integer.valueOf((int) val);
-            } else if (this.value instanceof Double) {
-                val = Math.round(val / increment) * increment;
-                this.value = (T) Double.valueOf(val);
-            }
-        } else if (hasModes() && modes.contains(value)) {
-            this.value = (T) value; // Ensure value is a valid enum
-        } else {
-            this.value = (T) value;
-        }
-    }
-
+    // Под-настройки
     public void addSubSetting(Setting<?> subSetting) {
         subSettings.add(subSetting);
+        if (parentModule != null) {
+            subSetting.setParentModule(parentModule);
+        }
     }
 
     public List<Setting<?>> getSubSettings() {
@@ -130,6 +125,44 @@ public class Setting<T> {
 
     public void toggleModeExpanded() {
         setModeExpanded(!modeExpanded);
+    }
+
+    // Fluent API для создания под-настроек
+    public Setting<T> withSubSettings(Setting<?>... subSettings) {
+        for (Setting<?> subSetting : subSettings) {
+            addSubSetting(subSetting);
+        }
+        return this;
+    }
+
+    public void setValue(Object value) {
+        T oldValue = this.value;
+
+        if (isNumeric && value instanceof Number) {
+            double val = ((Number) value).doubleValue();
+            val = Math.max(minValue, Math.min(maxValue, val));
+            if (this.value instanceof Integer) {
+                val = Math.round(val / increment) * increment;
+                this.value = (T) Integer.valueOf((int) val);
+            } else if (this.value instanceof Double) {
+                val = Math.round(val / increment) * increment;
+                this.value = (T) Double.valueOf(val);
+            }
+        } else if (hasModes() && modes.contains(value)) {
+            this.value = (T) value;
+        } else {
+            try {
+                this.value = (T) value;
+            } catch (ClassCastException e) {
+                System.err.println("Invalid value type for setting " + name + ": " + value);
+                return;
+            }
+        }
+
+        // Уведомляем родительский модуль об изменении
+        if (parentModule != null && !this.value.equals(oldValue)) {
+            parentModule.onSettingChanged(this);
+        }
     }
 
     public void cycleMode() {

@@ -1,8 +1,8 @@
 package me.origami.impl.managers;
 
 import me.origami.module.Module;
-import me.origami.module.combat.AutoCrystal;
-import me.origami.module.render.FakePlayer;
+import me.origami.module.combat.*;
+import me.origami.module.render.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -26,11 +26,17 @@ public class ModuleManager {
     }
 
     private void load() {
-        Module[] initialModules = { new FakePlayer(), new AutoCrystal() };
-        for (Module module : initialModules) {
-            modules.put(module.getName().toLowerCase(), module);
-            moduleList.add(module);
-        }
+        // Combat модули
+        moduleAdd(new AutoCrystal());
+        moduleAdd(new FakePlayer());
+    }
+
+    private void moduleAdd(Module module) {
+        modules.put(module.getName().toLowerCase(), module);
+        moduleList.add(module);
+
+        // Настройки уже привязаны через register() в конструкторе модуля
+        System.out.println("Registered module: " + module.getName() + " with " + module.getSettings().size() + " settings");
     }
 
     public Module getModuleByName(String name) {
